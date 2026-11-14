@@ -1,0 +1,33 @@
+# PRODUCTION Render Blueprint (logins ON, persistent disk). To go live: copy this file over render.yaml.
+# Dashboard → New → Blueprint → select this repo.
+services:
+  - type: web
+    name: freightiq
+    runtime: node
+    plan: 0.5c-512mb          # paid instance: required for the persistent disk (Free has an ephemeral filesystem)
+    region: frankfurt         # closest Render region to Oman
+    buildCommand: npm install # no dependencies — finishes instantly
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: freightiq-data
+      mountPath: /opt/render/project/src/data   # SQLite database lives here and survives deploys
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_DIR
+        value: /opt/render/project/src/data
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: BASE_CURRENCY
+        value: USD
+      - key: PUBLIC_BASE_URL     # set to your https://….onrender.com (or custom domain) address
+        sync: false
+      - key: ADMIN_EMAIL         # first administrator, created on first start
+        sync: false
+      - key: ADMIN_PASSWORD      # min 10 chars, letters + numbers
+        sync: false
+      - key: ANTHROPIC_API_KEY   # optional: enables full AI assistant + live web price research
+        sync: false

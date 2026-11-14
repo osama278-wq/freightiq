@@ -1,0 +1,24 @@
+# TEST Render Blueprint — free plan, no login (AUTH_DISABLED=true).
+# Free web services sleep after 15 min idle and lose the SQLite data on every sleep/redeploy.
+# For live use with clients, replace this file with render.production.yaml.
+services:
+  - type: web
+    name: freightiq-test
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: AUTH_DISABLED        # TEST MODE: no login, every visitor is administrator
+        value: "true"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: BASE_CURRENCY
+        value: USD
+      - key: ANTHROPIC_API_KEY    # optional: full AI assistant + live web price research
+        sync: false

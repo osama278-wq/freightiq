@@ -1,0 +1,16 @@
+{
+  "name": "freightiq",
+  "version": "1.0.0",
+  "description": "AI-powered global air & sea freight price intelligence and comparison platform",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": { "node": ">=22.13.0 <25" },
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning server.js",
+    "seed": "node --no-warnings=ExperimentalWarning scripts/seed.js",
+    "create-admin": "node --no-warnings=ExperimentalWarning scripts/create-admin.js",
+    "test": "node --no-warnings=ExperimentalWarning tests/run-tests.js"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
