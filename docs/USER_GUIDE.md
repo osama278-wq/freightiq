@@ -22,5 +22,8 @@ Use the currency selector, filters (method, status, provider, like-for-like, val
 ## 5. Reports & sharing
 **Excel** and **PDF report** (opens a print-ready page — choose *Save as PDF*). **Share** creates a read-only link that expires; only send it to authorised recipients.
 
-## 6. AI Freight Assistant
+## 6. Upload documents
+**Upload Documents** → enter your name or company, drop or choose the files (bills, invoices, shipping lists; PDF, images, Excel, Word, max 25 MB each) and click **Upload**. Each file is saved in our Drive folder with the upload date in front of its name, e.g. `20-11 Bill of Lading 22.pdf`. If the form doesn't load, use **Open in new tab**.
+
+## 7. AI Freight Assistant
 Ask in plain language: "Compare air and sea from Shanghai to Muscat for 500 kg, 2.4 cbm", then follow up: "fastest?", "alternatives to DHL", "explain #12 vs #15", "recheck prices", "landed cost". Open it from a search (**✦ Ask assistant**) to keep that search as context.

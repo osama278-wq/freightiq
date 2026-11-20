@@ -2,7 +2,7 @@
 /* FreightIQ single-page app — vanilla JS, no build step. All data comes from the
    authenticated JSON API; no secrets ever live in this file. */
 (() => {
-const S = { user: null, csrf: null, ref: null, ai: false, test: false, timers: [] };
+const S = { user: null, csrf: null, ref: null, ai: false, test: false, upload: '', timers: [] };
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -64,7 +64,7 @@ function md(src) {
 // ───────────── Layout & routing ─────────────
 const NAV = [
   ['dashboard', '▦', 'Dashboard'], ['search/new', '＋', 'New Shipping Search'], ['searches', '☰', 'Search Results'], ['assistant', '✦', 'AI Freight Assistant'],
-  ['providers', '⌂', 'Shipping Companies'], ['saved', '★', 'Saved Quotations'], ['reports', '⎙', 'Reports'], ['admin', '⚙', 'Administration', isOp], ['account', '☺', 'Account'],
+  ['providers', '⌂', 'Shipping Companies'], ['saved', '★', 'Saved Quotations'], ['upload', '⇪', 'Upload Documents', () => !!S.upload], ['reports', '⎙', 'Reports'], ['admin', '⚙', 'Administration', isOp], ['account', '☺', 'Account'],
 ];
 function layout(active, inner) {
   return `<div class="layout"><aside class="side"><div class="brand"><svg width="28" height="28" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M14 40h36l-6 8H20z" fill="#1f9e94"/><path d="M22 20h8v14h-8zM32 14h8v20h-8z" fill="#0f3d5e"/></svg><div>FreightIQ<small>Freight price intelligence</small></div></div>
@@ -80,7 +80,7 @@ const route = (re, fn) => ROUTES.push([re, fn]);
 async function router() {
   clearTimers();
   const h = location.hash.replace(/^#\/?/, '') || 'dashboard';
-  if (!S.user && h !== 'login') { try { const me = await api('GET', '/api/auth/me'); S.user = me.user; S.csrf = me.csrf; S.ai = me.ai_enabled; S.test = !!me.test_mode; } catch { location.hash = '#/login'; return; } }
+  if (!S.user && h !== 'login') { try { const me = await api('GET', '/api/auth/me'); S.user = me.user; S.csrf = me.csrf; S.ai = me.ai_enabled; S.test = !!me.test_mode; S.upload = me.upload_url || ''; } catch { location.hash = '#/login'; return; } }
   if (S.user && !S.ref) S.ref = await api('GET', '/api/reference');
   for (const [re, fn] of ROUTES) { const m = h.match(re); if (m) { try { await fn(...m.slice(1)); } catch (e) { toast(e.message, true); } return; } }
   location.hash = '#/dashboard';
@@ -105,7 +105,7 @@ route(/^dashboard$/, async () => {
   mount('dashboard', '<div class="spin"></div>');
   const d = await api('GET', '/api/dashboard');
   const t = d.totals;
-  $('#main').innerHTML = `<div class="top"><div><h1>Dashboard</h1><div class="sub">${esc(S.user.org_name)} · ${isOp() ? 'all clients' : 'your organisation'}</div></div><a class="btn" href="#/search/new">＋ New shipping search</a></div>
+  $('#main').innerHTML = `<div class="top"><div><h1>Dashboard</h1><div class="sub">${esc(S.user.org_name)} · ${isOp() ? 'all clients' : 'your organisation'}</div></div><div class="row">${S.upload ? '<a class="btn ghost" href="#/upload">⇪ Upload documents</a>' : ''}<a class="btn" href="#/search/new">＋ New shipping search</a></div></div>
   <div class="grid g4">${[['Total searches', t.searches], ['Searches (30 days)', t.searches_30d], ['Saved quotations', t.saved_quotes], ['Firm quotes on file', t.firm_quotes]].map(([l, v]) => `<div class="card kpi"><div class="v">${fmt(v)}</div><div class="l">${l}</div></div>`).join('')}</div>
   <div class="grid g2"><div class="card"><h2>Recent shipping searches</h2>${searchTable(d.recent)}</div>
   <div class="card"><h2>Best available prices</h2>${d.best.length ? `<table><tr><th>Lane</th><th>Provider · mode</th><th class="num">Total</th><th>Status</th></tr>${d.best.map((b) => `<tr class="click" data-go="#/search/${b.search_id}"><td>${esc(b.lane)}<div class="small muted">${esc(b.ref)}</div></td><td>${esc(b.provider)}<div class="small muted">${esc(MODE[b.mode])} · ${b.transit.min ?? '?'}–${b.transit.max ?? '?'} d</div></td><td class="num">${money(b.total)} ${esc(b.total.currency)}</td><td>${esc(b.status_label)}</td></tr>`).join('')}</table>` : '<p class="muted">No priced searches yet.</p>'}</div></div>
@@ -486,6 +486,16 @@ route(/^saved$/, async () => {
       <tr><td><b>Total</b></td>${sel.map((q) => `<td class="num"><b>${money(q.snapshot.total)} ${esc(q.snapshot.total ? q.snapshot.total.currency : '')}</b></td>`).join('')}</tr>
       <tr><td>Transit</td>${sel.map((q) => `<td>${q.snapshot.transit[0] ?? '?'}–${q.snapshot.transit[1] ?? '?'} d</td>`).join('')}</tr><tr><td>Like-for-like</td>${sel.map((q) => `<td>${q.snapshot.comparable ? 'Yes' : 'No — missing ' + esc((q.snapshot.missing || []).join(', '))}</td>`).join('')}</tr></table></div><p class="small muted">Amounts shown in each snapshot's comparison currency at the time of saving. If currencies differ, re-run the searches in one currency.</p>`);
   };
+});
+
+// ───────────── Upload documents (Google Drive via Apps Script) ─────────────
+route(/^upload$/, async () => {
+  if (!S.upload) { location.hash = '#/dashboard'; return; }
+  mount('upload', `<div class="top"><div><h1>Upload Documents <span class="muted" dir="rtl" lang="ar">رفع المستندات</span></h1>
+    <div class="sub">Send bills, invoices and shipping lists to our team. Each file is saved with today's date in front of its name (dd-mm).</div></div>
+    <a class="btn ghost" href="${esc(S.upload)}" target="_blank" rel="noopener">Open in new tab ↗</a></div>
+   <div class="card" style="padding:0;overflow:hidden"><iframe class="upframe" src="${esc(S.upload)}" title="Upload documents" allow="clipboard-write"></iframe></div>
+   <p class="small muted">If the form doesn't appear (some browsers block embedded Google pages), use <b>Open in new tab</b>.</p>`);
 });
 
 // ───────────── Reports ─────────────

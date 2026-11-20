@@ -30,6 +30,9 @@ module.exports = {
   cookieSecure: env('COOKIE_SECURE', 'false') === 'true',
   baseCurrency: env('BASE_CURRENCY', 'USD'),
   publicBaseUrl: env('PUBLIC_BASE_URL', ''),
+  // Client document upload page (Google Apps Script web app that saves into the company Drive folder).
+  // Only https://script.google.com/... addresses are accepted; set to 'off' to hide the page.
+  documentUploadUrl: (() => { const u = env('DOCUMENT_UPLOAD_URL', 'https://script.google.com/macros/s/AKfycbxWh4W4-pcvSGB8mw7fXYjEUYoJxGUK9reaQn7QKaaQFeLtRlheKRPzta7lrLoga0H3/exec'); return /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) ? u : ''; })(),
   // AI agent (Anthropic Messages API)
   anthropicApiKey: env('ANTHROPIC_API_KEY', ''),
   anthropicModel: env('ANTHROPIC_MODEL', 'claude-sonnet-5-5'),

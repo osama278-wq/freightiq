@@ -29,7 +29,7 @@ const str = (v, max = 500) => (v === undefined || v === null ? null : String(v).
 r.get('/api/health', () => ({ ok: true, uptime_s: Math.round((Date.now() - STARTED) / 1000), version: '1.0.0' }));
 r.post('/api/auth/login', (ctx) => auth.login(ctx));
 r.post('/api/auth/logout', (ctx) => { auth.destroySession(ctx); return { ok: true }; });
-r.get('/api/auth/me', A, (ctx) => ({ user: ctx.user, csrf: ctx.csrf, ai_enabled: ai.isConfigured(), test_mode: config.authDisabled }));
+r.get('/api/auth/me', A, (ctx) => ({ user: ctx.user, csrf: ctx.csrf, ai_enabled: ai.isConfigured(), test_mode: config.authDisabled, upload_url: config.documentUploadUrl }));
 r.get('/api/mode', () => ({ test_mode: config.authDisabled }));
 r.post('/api/auth/password', A, (ctx) => {
   const { current_password, new_password } = ctx.body;

@@ -52,3 +52,5 @@ tr.click{cursor:pointer}tr.click:hover td{background:#f7fafc}.num{text-align:rig
 details summary{cursor:pointer;font-weight:600;margin:6px 0}
 
 .row>select,.row>input:not([type=checkbox]):not([type=range]){width:auto;min-width:140px}.row>select#cur{min-width:90px}
+
+.upframe{display:block;width:100%;height:calc(100vh - 230px);min-height:620px;border:0;background:#f3f5f8}

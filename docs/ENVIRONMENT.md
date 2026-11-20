@@ -10,6 +10,7 @@ Loaded from the process environment, or from `.env` in the project root (server-
 | `SESSION_TTL_HOURS` | 12 | Session lifetime |
 | `COOKIE_SECURE` | false | Set **true** in production (HTTPS) |
 | `PUBLIC_BASE_URL` | — | Absolute base for share links |
+| `DOCUMENT_UPLOAD_URL` | the company's Apps Script `/exec` link | **Upload Documents** page (clients send bills & shipping lists to the company Google Drive folder; files saved as `dd-mm name`). Must be a `https://script.google.com/macros/s/…/exec` address; `off` hides the page |
 | `BASE_CURRENCY` | USD | Initial comparison currency (changeable in Settings) |
 | `AUTH_DISABLED` | false | **Test mode.** `true` = no login screen; every visitor is an administrator. Evaluation only — never with real client data |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | — | Bootstraps the first admin at start-up |
